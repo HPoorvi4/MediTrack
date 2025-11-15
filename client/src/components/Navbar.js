@@ -1,16 +1,23 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Truck, User, LogOut, Home, Building2, Link as LinkIcon, Calendar } from 'lucide-react';
-import './Navbar.css';
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Truck,
+  User,
+  LogOut,
+  Home,
+  Building2,
+  Link as LinkIcon,
+  Calendar,
+} from "lucide-react";
+import "./Navbar.css";
 
 const Navbar = () => {
-  const { user, logout, isAuthenticated } = useAuth();
+  const isAuthenticated = !!localStorage.getItem("token");
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
-    navigate('/login');
+    localStorage.removeItem("token");
+    navigate("/login");
   };
 
   return (
@@ -51,8 +58,12 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link to="/login" className="nav-link">Login</Link>
-              <Link to="/register" className="btn btn-primary">Register</Link>
+              <Link to="/login" className="nav-link">
+                Login
+              </Link>
+              <Link to="/register" className="btn btn-primary">
+                Register
+              </Link>
             </>
           )}
         </div>

@@ -1,37 +1,48 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Truck, Mail, Lock } from 'lucide-react';
-import { toast } from 'react-toastify';
-import './Auth.css';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../utils/api";
+import { Truck, Mail, Lock } from "lucide-react";
+import { toast } from "react-toastify";
+import "./Auth.css";
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(false);
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
-    const result = await login(formData.email, formData.password);
-
-    if (result.success) {
-      toast.success('Login successful!');
-      navigate('/dashboard');
-    } else {
-      toast.error(result.message);
+    if (!formData.email.trim() || !formData.password.trim()) {
+      toast.error("Please fill all fields");
+      return;
     }
 
-    setLoading(false);
+    setLoading(true);
+
+    try {
+      const response = await api.post("/auth/login", {
+        email: formData.email,
+        password: formData.password,
+      });
+      localStorage.setItem("token", response.data.token);
+      toast.success("Login successful!");
+      navigate("/dashboard");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -44,6 +55,7 @@ const Login = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
+          {/* Email */}
           <div className="form-group">
             <label>
               <Mail size={18} />
@@ -52,13 +64,14 @@ const Login = () => {
             <input
               type="email"
               name="email"
+              placeholder="Enter your email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="Enter your email"
               required
             />
           </div>
 
+          {/* Password */}
           <div className="form-group">
             <label>
               <Lock size={18} />
@@ -67,15 +80,16 @@ const Login = () => {
             <input
               type="password"
               name="password"
+              placeholder="Enter your password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Enter your password"
               required
             />
           </div>
 
+          {/* Button */}
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 

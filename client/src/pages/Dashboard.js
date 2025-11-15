@@ -1,14 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { bookingAPI, emergencyLinkAPI } from '../utils/api';
-import { Truck, Building2, Link as LinkIcon, Calendar, AlertCircle } from 'lucide-react';
-import { toast } from 'react-toastify';
-import LoadingSpinner from '../components/LoadingSpinner';
-import './Dashboard.css';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import api, { bookingAPI, emergencyLinkAPI } from "../utils/api";
+import {
+  Truck,
+  Building2,
+  Link as LinkIcon,
+  Calendar,
+  AlertCircle,
+} from "lucide-react";
+import { toast } from "react-toastify";
+import LoadingSpinner from "../components/LoadingSpinner";
+import "./Dashboard.css";
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
     totalBookings: 0,
     activeBookings: 0,
@@ -16,6 +21,21 @@ const Dashboard = () => {
   });
   const [recentBookings, setRecentBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const response = await api.get("/auth/me");
+          setUser(response.data);
+        } catch (error) {
+          localStorage.removeItem("token");
+        }
+      }
+    };
+    loadUser();
+  }, []);
 
   useEffect(() => {
     loadDashboardData();
@@ -30,7 +50,7 @@ const Dashboard = () => {
 
       const bookings = bookingsRes.data;
       const activeBookings = bookings.filter(
-        (b) => !['completed', 'cancelled'].includes(b.status)
+        (b) => !["completed", "cancelled"].includes(b.status)
       );
 
       setStats({
@@ -41,8 +61,8 @@ const Dashboard = () => {
 
       setRecentBookings(bookings.slice(0, 5));
     } catch (error) {
-      console.error('Load dashboard error:', error);
-      toast.error('Failed to load dashboard data');
+      console.error("Load dashboard error:", error);
+      toast.error("Failed to load dashboard data");
     } finally {
       setLoading(false);
     }
@@ -62,7 +82,7 @@ const Dashboard = () => {
 
         <div className="stats-grid">
           <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#dbeafe' }}>
+            <div className="stat-icon" style={{ background: "#dbeafe" }}>
               <Calendar size={32} color="#3b82f6" />
             </div>
             <div className="stat-info">
@@ -72,7 +92,7 @@ const Dashboard = () => {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#fef3c7' }}>
+            <div className="stat-icon" style={{ background: "#fef3c7" }}>
               <Truck size={32} color="#f59e0b" />
             </div>
             <div className="stat-info">
@@ -82,7 +102,7 @@ const Dashboard = () => {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#d1fae5' }}>
+            <div className="stat-icon" style={{ background: "#d1fae5" }}>
               <LinkIcon size={32} color="#10b981" />
             </div>
             <div className="stat-info">
@@ -119,7 +139,9 @@ const Dashboard = () => {
           <div className="recent-bookings">
             <div className="section-header">
               <h2>Recent Bookings</h2>
-              <Link to="/bookings" className="view-all">View All</Link>
+              <Link to="/bookings" className="view-all">
+                View All
+              </Link>
             </div>
 
             <div className="bookings-list">
@@ -128,10 +150,12 @@ const Dashboard = () => {
                   <div className="booking-info">
                     <h4>{booking.hospital_name}</h4>
                     <p>{booking.emergency_type} Emergency</p>
-                    <small>{new Date(booking.created_at).toLocaleDateString()}</small>
+                    <small>
+                      {new Date(booking.created_at).toLocaleDateString()}
+                    </small>
                   </div>
                   <div className={`booking-status status-${booking.status}`}>
-                    {booking.status.replace(/_/g, ' ')}
+                    {booking.status.replace(/_/g, " ")}
                   </div>
                 </div>
               ))}
@@ -145,7 +169,8 @@ const Dashboard = () => {
             <div>
               <h3>No Emergency Links</h3>
               <p>
-                Create emergency links with your preferred hospitals for faster ambulance booking.
+                Create emergency links with your preferred hospitals for faster
+                ambulance booking.
               </p>
               <Link to="/hospitals" className="btn btn-primary">
                 Add Emergency Link

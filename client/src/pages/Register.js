@@ -1,60 +1,86 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Truck } from 'lucide-react';
-import { toast } from 'react-toastify';
-import { BLOOD_GROUPS, GENDERS } from '../utils/constants';
-import './Auth.css';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../utils/api";
+import { Truck } from "lucide-react";
+import { toast } from "react-toastify";
+import { BLOOD_GROUPS, GENDERS } from "../utils/constants";
+import "./Auth.css";
 
 const Register = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    full_name: '',
-    date_of_birth: '',
-    gender: '',
-    blood_group: '',
-    contact_number: '',
-    address: '',
-    city: '',
-    state: '',
-    pin_code: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(false);
+
+  // -------------------------------
+  // Centralized form state
+  // -------------------------------
+  const [formData, setFormData] = useState({
+    full_name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    date_of_birth: "",
+    gender: "",
+    blood_group: "",
+    contact_number: "",
+    address: "",
+    city: "",
+    state: "",
+    pin_code: "",
+  });
+
+  // -------------------------------
+  // Input Change Handler
+  // -------------------------------
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // -------------------------------
+  // Inline validation (cleaner)
+  // -------------------------------
+  const validateForm = () => {
+    const { password, confirmPassword, contact_number, pin_code } = formData;
+
+    if (password !== confirmPassword) return "Passwords do not match";
+
+    if (password.length < 6) return "Password must be at least 6 characters";
+
+    if (!/^\d{10}$/.test(contact_number))
+      return "Contact number must be 10 digits";
+
+    if (!/^\d{6}$/.test(pin_code)) return "PIN Code must be 6 digits";
+
+    return null; // no errors
+  };
+
+  // -------------------------------
+  // Submit Handler
+  // -------------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+    const error = validateForm();
+    if (error) {
+      toast.error(error);
       return;
     }
 
     setLoading(true);
 
-    const { confirmPassword, ...registrationData } = formData;
-    const result = await register(registrationData);
+    // Remove confirmPassword before sending to backend
+    const { confirmPassword, ...payload } = formData;
 
-    if (result.success) {
-      toast.success('Registration successful!');
-      navigate('/dashboard');
-    } else {
-      toast.error(result.message);
+    try {
+      await api.post("/auth/register", payload);
+      toast.success("Registration successful!");
+      navigate("/login");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -66,7 +92,8 @@ const Register = () => {
           <p>Register for emergency ambulance services</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form className="auth-form" onSubmit={handleSubmit}>
+          {/* Full name + Email */}
           <div className="form-row">
             <div className="form-group">
               <label>Full Name *</label>
@@ -91,6 +118,7 @@ const Register = () => {
             </div>
           </div>
 
+          {/* Password + Confirm Password */}
           <div className="form-row">
             <div className="form-group">
               <label>Password *</label>
@@ -115,6 +143,7 @@ const Register = () => {
             </div>
           </div>
 
+          {/* DOB + Gender + Blood Group */}
           <div className="form-row">
             <div className="form-group">
               <label>Date of Birth *</label>
@@ -129,11 +158,16 @@ const Register = () => {
 
             <div className="form-group">
               <label>Gender *</label>
-              <select name="gender" value={formData.gender} onChange={handleChange} required>
+              <select
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                required
+              >
                 <option value="">Select Gender</option>
-                {GENDERS.map((gender) => (
-                  <option key={gender} value={gender}>
-                    {gender}
+                {GENDERS.map((g) => (
+                  <option key={g} value={g}>
+                    {g}
                   </option>
                 ))}
               </select>
@@ -148,15 +182,16 @@ const Register = () => {
                 required
               >
                 <option value="">Select Blood Group</option>
-                {BLOOD_GROUPS.map((group) => (
-                  <option key={group} value={group}>
-                    {group}
+                {BLOOD_GROUPS.map((bg) => (
+                  <option key={bg} value={bg}>
+                    {bg}
                   </option>
                 ))}
               </select>
             </div>
           </div>
 
+          {/* Contact */}
           <div className="form-group">
             <label>Contact Number *</label>
             <input
@@ -165,20 +200,23 @@ const Register = () => {
               value={formData.contact_number}
               onChange={handleChange}
               required
+              maxLength={10}
             />
           </div>
 
+          {/* Address */}
           <div className="form-group">
             <label>Address *</label>
             <textarea
               name="address"
+              rows="3"
               value={formData.address}
               onChange={handleChange}
-              rows="3"
               required
             />
           </div>
 
+          {/* City + State + PIN */}
           <div className="form-row">
             <div className="form-group">
               <label>City *</label>
@@ -210,12 +248,13 @@ const Register = () => {
                 value={formData.pin_code}
                 onChange={handleChange}
                 required
+                maxLength={6}
               />
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Creating Account...' : 'Register'}
+          <button className="btn btn-primary" type="submit" disabled={loading}>
+            {loading ? "Creating Account..." : "Register"}
           </button>
         </form>
 

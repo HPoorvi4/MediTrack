@@ -1,11 +1,10 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Truck, Shield, Clock, MapPin } from 'lucide-react';
-import './Home.css';
+import React from "react";
+import { Link } from "react-router-dom";
+import { Truck, Shield, Clock, MapPin } from "lucide-react";
+import "./Home.css";
 
 const Home = () => {
-  const { isAuthenticated } = useAuth();
+  const isAuthenticated = !!localStorage.getItem("token");
 
   return (
     <div className="home-container">
@@ -14,7 +13,8 @@ const Home = () => {
           <div className="hero-content">
             <h1>Emergency Ambulance Booking</h1>
             <p className="hero-subtitle">
-              Privacy-focused platform connecting patients with hospitals for emergency care
+              Privacy-focused platform connecting patients with hospitals for
+              emergency care
             </p>
             <div className="hero-actions">
               {isAuthenticated ? (
@@ -45,7 +45,10 @@ const Home = () => {
                 <Clock size={40} color="#dc2626" />
               </div>
               <h3>Quick Response</h3>
-              <p>Fast ambulance dispatch with real-time tracking for emergency situations</p>
+              <p>
+                Fast ambulance dispatch with real-time tracking for emergency
+                situations
+              </p>
             </div>
 
             <div className="feature-card">
@@ -53,7 +56,10 @@ const Home = () => {
                 <Shield size={40} color="#dc2626" />
               </div>
               <h3>Privacy First</h3>
-              <p>Minimal data storage - your medical records stay with your hospital</p>
+              <p>
+                Minimal data storage - your medical records stay with your
+                hospital
+              </p>
             </div>
 
             <div className="feature-card">
@@ -109,7 +115,9 @@ const Home = () => {
       <section className="cta-section">
         <div className="container">
           <h2>Ready to Get Started?</h2>
-          <p>Join thousands of users who trust us for emergency medical services</p>
+          <p>
+            Join thousands of users who trust us for emergency medical services
+          </p>
           {!isAuthenticated && (
             <Link to="/register" className="btn btn-primary btn-large">
               Create Free Account

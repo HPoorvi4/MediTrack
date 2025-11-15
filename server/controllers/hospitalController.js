@@ -191,10 +191,32 @@ const getAvailableAmbulances = async (req, res) => {
   }
 };
 
+const getCities = async (req, res) => {
+  try {
+    const result = await pool.query('SELECT DISTINCT city FROM hospitals ORDER BY city');
+    res.json(result.rows.map(row => row.city));
+  } catch (error) {
+    console.error('Get cities error:', error);
+    res.status(500).json({ error: 'Failed to fetch cities' });
+  }
+};
+
+const getHospitalNames = async (req, res) => {
+  try {
+    const result = await pool.query('SELECT name FROM hospitals ORDER BY name');
+    res.json(result.rows.map(row => row.name));
+  } catch (error) {
+    console.error('Get hospital names error:', error);
+    res.status(500).json({ error: 'Failed to fetch hospital names' });
+  }
+};
+
 module.exports = {
   searchHospitals,
   getHospitalDetails,
   getHospitalDepartments,
   getHospitalDoctors,
   getAvailableAmbulances,
+  getCities,
+  getHospitalNames,
 };
